@@ -56,7 +56,7 @@ public class PageRank {
                 }
 
                 List<String> outlinks = new ArrayList<String>();
-                Matcher outlinksMatcher = outLinkPattern.matcher(line);
+                Matcher outlinksMatcher = outLinkPattern.matcher(innerText);
                 while(outlinksMatcher.find()){
                     String aux = outlinksMatcher.group(1);
                     outlinks.add(aux.trim().split("\\|")[0]);
@@ -65,12 +65,9 @@ public class PageRank {
             }
         }).cache();
 
-        System.out.println(rows.collect());
-        System.out.println("rows");
-
         JavaPairRDD<String, Float> pagerank = rows.mapValues(new Function<List<String>, Float>() {
             public Float call(List<String> strings) throws Exception {
-                return 1/(float) totalNode;
+                return (float) 1/totalNode;
             }
         });
 
@@ -93,9 +90,6 @@ public class PageRank {
                     return returnList.iterator();
                 }
             });
-
-            System.out.println(parseOutput.collect());
-            System.out.println("parseOutput");
 
             JavaPairRDD<String, Float> totalPR = pagerankContribution.reduceByKey(new Function2<Float, Float, Float>() {
                 public Float call(Float aFloat, Float aFloat2) throws Exception {
