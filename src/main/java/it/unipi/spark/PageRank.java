@@ -27,10 +27,10 @@ public class PageRank {
         SparkConf sparkConf = new SparkConf().setAppName("pageRankSpark").setMaster("local");
         JavaSparkContext sc = new JavaSparkContext(sparkConf);
 
-        int iteration = Integer.parseInt(args[1]);
-        final float alpha = Float.parseFloat(args[2]);
-        String inputPath = args[3];
-        String outputPath = args[4];
+        int iteration = Integer.parseInt(args[0]);
+        final float alpha = Float.parseFloat(args[1]);
+        String inputPath = args[2];
+        String outputPath = args[3];
 
         //Get the input data from text file and put these in rdd
         JavaRDD<String> inputData = sc.textFile(inputPath);
