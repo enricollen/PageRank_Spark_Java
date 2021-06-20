@@ -39,14 +39,14 @@ public class PageRank {
 
         JavaPairRDD<String, List<String>> rows = inputData.mapToPair(new PairFunction<String, String, List<String>>() {
             public Tuple2<String, List<String>> call(String line) throws Exception {
-                Pattern titlePattern = Pattern.compile("<title>(.)</title>");
-                Pattern textPattern = Pattern.compile("<text(.?)</text>");
+                Pattern titlePattern = Pattern.compile("<title>(.*)</title>");
+                Pattern textPattern = Pattern.compile("<text(.*?)</text>");
                 Pattern outLinkPattern = Pattern.compile("\\[\\[(.*?)\\]\\]");
 
-                String title = "";
+                String title="";
                 Matcher titleMatcher = titlePattern.matcher(line);
                 if(titleMatcher.find()) {
-                    title = titleMatcher.group(1);
+                    title = titleMatcher.group(1).trim().split("\\|")[0];
                 }
 
                 String innerText = "";
@@ -64,6 +64,9 @@ public class PageRank {
                 return new Tuple2<String, List<String>>(title, outlinks);
             }
         }).cache();
+
+        System.out.println(rows.collect());
+        System.out.println("rows");
 
         JavaPairRDD<String, Float> pagerank = rows.mapValues(new Function<List<String>, Float>() {
             public Float call(List<String> strings) throws Exception {
@@ -91,6 +94,9 @@ public class PageRank {
                 }
             });
 
+            System.out.println(parseOutput.collect());
+            System.out.println("parseOutput");
+
             JavaPairRDD<String, Float> totalPR = pagerankContribution.reduceByKey(new Function2<Float, Float, Float>() {
                 public Float call(Float aFloat, Float aFloat2) throws Exception {
                     return aFloat + aFloat2;
@@ -104,19 +110,8 @@ public class PageRank {
             });
         }
 
-        JavaPairRDD<String, Float> rankOutput = pagerank.mapToPair(new PairFunction<Tuple2<String, Float>, String, Float>() {
-            public Tuple2<String, Float> call(Tuple2<String, Float> tuple) throws Exception {
-                tuple.swap();
-                return tuple;
-            }
-        }).sortByKey(false).mapToPair(new PairFunction<Tuple2<String, Float>, String, Float>() {
-            public Tuple2<String, Float> call(Tuple2<String, Float> tuple) throws Exception {
-                tuple.swap();
-                return tuple;
-            }
-        });
+        JavaPairRDD<String, Float> rankOutput = pagerank.mapToPair(x -> x.swap()).sortByKey(false).mapToPair(x -> x.swap());
 
         rankOutput.saveAsTextFile(outputPath);
-
     }
 }
